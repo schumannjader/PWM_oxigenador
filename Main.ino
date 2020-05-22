@@ -15,6 +15,7 @@
 //int velocidade = 255;
 //int tempo = 30;
 int referencia = 0;
+
 void setup()
 {
   Serial.begin(9600);
@@ -23,10 +24,10 @@ void setup()
 void loop()
 {
   referencia = analogRead(ENTRADA);
-  analogWrite(CONTROLE, referencia);
+  analogWrite(CONTROLE, referencia/4);
   Serial.print(referencia); Serial.print("\t");
   Serial.println(CONTROLE);
-  delay(0.5);
+  delay(150);
   /*// Utilize o Monitor serial
   for(int x = 0; x < velocidade; x++)
   {
