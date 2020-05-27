@@ -16,8 +16,8 @@
  */
 
 #define PWM_OUT 9 
-#define PWM_IN 4
-#define BPM_IN 8
+#define PWM_IN 8
+#define BPM_IN 18
 #define POSICAO_IN 5 //pino 6 é referente ao A7 na placa Arduino Pro Micro (mini) e somente pode ser usado como entrada analogia, conforme documentação oficial)
 
 #define PWM_MIN 410 //algum valor entre 0 e 1023 (realizada leitura e teste de bancada, definido valor = 410)
