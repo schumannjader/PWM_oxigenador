@@ -16,11 +16,12 @@
  */
 
 #define PWM_OUT 9 
-#define PWM_IN 8
-#define BPM_IN 7
+#define PWM_IN 4
+#define BPM_IN 8
 #define POSICAO_IN 5 //pino 6 é referente ao A7 na placa Arduino Pro Micro (mini) e somente pode ser usado como entrada analogia, conforme documentação oficial)
 
 #define PWM_MIN 410 //algum valor entre 0 e 1023 (realizada leitura e teste de bancada, definido valor = 410)
+#define PWM_OFF 30
 
 // Valor máximo 255
 //int velocidade = 255;
@@ -28,7 +29,7 @@
 unsigned int pwm_referencia = 0;
 unsigned int bpm_referencia = 0;
 unsigned int eixo_referencia = 0;
-unsigned int fator_tempo = 1; // fator de multiplicação "neutro"
+unsigned int fator_tempo = 10; 
 unsigned long tempo_repouso = 1;
 unsigned long tempo_millis = 0;
 unsigned int estado = 1;//inicia já acionando o motor
@@ -55,31 +56,35 @@ switch(estado){
   //aciona motor
 
   pwm_referencia = analogRead(PWM_IN);//analogRead() retorna valor entre 0 e 1023;
-  if(pwm_referencia <=30)
+  if(pwm_referencia <= PWM_OFF)
     analogWrite(PWM_OUT, 0);//pwm min definido como o valor minimo para evitar o motor trancar por baixa rpm
     else if (pwm_referencia < PWM_MIN)
        analogWrite(PWM_OUT, PWM_MIN/4);
          else      
             analogWrite(PWM_OUT, pwm_referencia/4);//analogWrite() (conversao D/A) tem parametros de entrada com range 0 a 254)
   
-  Serial.print(pwm_referencia); Serial.print("\t");
-  Serial.println(PWM_OUT);
+  Serial.print("Pino de referencia PWM = ");Serial.println(PWM_IN);
+  Serial.print("pwm_referencia = "); Serial.println(pwm_referencia);
+  Serial.print("Pino de saida PWM = ");Serial.println(PWM_OUT);
   delay(150);
 
   eixo_referencia = digitalRead(POSICAO_IN);//retorna HIGH OU LOW
+  Serial.print("Pino de entrada, sensor do eixo = "); Serial.println(POSICAO_IN);
   Serial.print("eixo_referencia = "); Serial.println(eixo_referencia);
-  if(eixo_referencia == HIGH)
+  if(eixo_referencia == 1)// trocar aqui para 1 e ou 0  no lugarde HIGH E LOW
     estado = 2;
   break;  
   
   case 2:
   //seta tempo
   bpm_referencia = analogRead(BPM_IN);//analogRead() retorna valor entre 0 e 1023;
+  Serial.print("Pino de referencia BPM = "); Serial.println(BPM_IN);
   Serial.print("bpm_referencia = "); Serial.println(bpm_referencia);
   if(bpm_referencia <=0)
     bpm_referencia = 1;// evita o tempo 0
   estado = 3;
   break;
+  
   case 3:
   //conta tempo
   //delay(ms) tempo em milisegundos que o programa fica parado
@@ -97,10 +102,8 @@ switch(estado){
    *  aumentando um pouco o range, pensando em 6 acionamentos por segundos temos 60/6 = 10s de maior tempo de pausa.
    *  1023 - 10 x 1000 ms.
    *  fator_tempo =~ 10;
-   *  
-  
+   * 
   */
-  
 tempo_repouso = bpm_referencia * fator_tempo;
 //tempo = 1023 * 10 = 10230 ms (10 segundos)
 //tempo = 0 * 10 = 0
@@ -114,6 +117,7 @@ tempo_repouso = bpm_referencia * fator_tempo;
  //DA PARA DEFINIR A RPM MAX AJUSTANDO O TEMPO MINIMO DE REPOUSO!! (ainda nao está em questão)(depende do quao rapido gira o motor)   
     
 tempo_millis = millis();
+Serial.print("Tempo de repouso = "); Serial.print(tempo_repouso); Serial.println("  ms");
 while( (tempo_millis + tempo_repouso) > millis() )
   {
     //aguarda o tempo definido
@@ -123,22 +127,5 @@ while( (tempo_millis + tempo_repouso) > millis() )
   estado = 1;
   break;
 }
-
- 
-  /*// Utilize o Monitor serial
-  for(int x = 0; x < velocidade; x++)
-  {
-    analogWrite(CONTROLE, x);
-    Serial.print("Aumentando..");
-    Serial.println(x);
-    delay(tempo);
-  }
-
-  for(int y = velocidade; y > 0; y--)
-  {
-    analogWrite(CONTROLE, y);
-    Serial.print("Diminuindo..");
-    Serial.println(y);
-    delay(tempo);
-  }*/
+   
 }
